@@ -1,0 +1,58 @@
+<ROSETTASCRIPTS>
+		<SCOREFXNS>
+			<ScoreFunction name="ligand_soft_rep" weights="ligand_soft_rep">
+				<Reweight scoretype="fa_elec" weight="0.42" />
+				<Reweight scoretype="hbond_bb_sc" weight="1.3" />
+				<Reweight scoretype="hbond_sc" weight="1.3" />
+				<Reweight scoretype="rama" weight="0.2" />
+			</ScoreFunction>
+			<ScoreFunction name="hard_rep" weights="ligand">
+				<Reweight scoretype="fa_intra_rep" weight="0.004" />
+				<Reweight scoretype="fa_elec" weight="0.42" />
+				<Reweight scoretype="hbond_bb_sc" weight="1.3" />
+				<Reweight scoretype="hbond_sc" weight="1.3" />
+				<Reweight scoretype="rama" weight="0.2" />
+			</ScoreFunction>
+		</SCOREFXNS>
+
+		<LIGAND_AREAS>
+			<LigandArea add_nbr_radius="true" all_atom_mode="true" chain="X" cutoff="6.0" name="inhibitor_dock_sc" />
+			<LigandArea add_nbr_radius="true" all_atom_mode="true" chain="X" cutoff="6.0" name="inhibitor_final_sc" />
+			<LigandArea Calpha_restraints="0.3" add_nbr_radius="false" all_atom_mode="true" chain="X" cutoff="7.0" name="inhibitor_final_bb" />
+		</LIGAND_AREAS>
+
+		<INTERFACE_BUILDERS>
+			<InterfaceBuilder ligand_areas="inhibitor_dock_sc" name="side_chain_for_docking" />
+			<InterfaceBuilder ligand_areas="inhibitor_final_sc" name="side_chain_for_final" />
+			<InterfaceBuilder extension_window="3" ligand_areas="inhibitor_final_bb" name="backbone" />
+		</INTERFACE_BUILDERS>
+
+		<MOVEMAP_BUILDERS>
+			<MoveMapBuilder minimize_water="false" name="docking" sc_interface="side_chain_for_docking" />
+			<MoveMapBuilder bb_interface="backbone" minimize_water="false" name="final" sc_interface="side_chain_for_final" />
+		</MOVEMAP_BUILDERS>
+
+		<SCORINGGRIDS ligand_chain="X" width="45">
+			<ClassicGrid grid_name="classic" weight="1.0" />
+		</SCORINGGRIDS>
+
+		<TASKOPERATIONS>
+    </TASKOPERATIONS>
+
+		<MOVERS>
+			<StartFrom chain="X" name="start_from">
+      <Coordinates x="104.09300" y="106.32399" z="114.50900" /></StartFrom>
+			<Transform angle="20" box_size="33" chain="X" cycles="1000" initial_perturb="5.0" move_distance="0.2" name="transform" repeats="1" temperature="5" />
+			<HighResDocker cycles="6" movemap_builder="docking" name="high_res_docker" repack_every_Nth="3" scorefxn="ligand_soft_rep" />
+			<FinalMinimizer movemap_builder="final" name="final" scorefxn="hard_rep" />
+			<InterfaceScoreCalculator chains="X" name="add_scores" scorefxn="hard_rep" />
+		</MOVERS>
+
+		<PROTOCOLS>
+			<Add mover_name="start_from" />
+			<Add mover_name="transform" />
+			<Add mover_name="high_res_docker" />
+			<Add mover_name="final" />
+			<Add mover_name="add_scores" />
+		</PROTOCOLS>
+</ROSETTASCRIPTS>
