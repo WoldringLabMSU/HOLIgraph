@@ -2,7 +2,7 @@
 ###### The HOLI-GNN model was designed to predict small molecule inhibitors of the organic anion transporting polypeptide (OATP) 1B1, a key hepatic drug uptake protein. For more context, please refer to **preprint, coming soon!**
 
 ## Background
-This document provides a tutorial for using HOLI-GNN (steps 3-5 below). 
+Example files are provided to complete a tutorial on HOLI-GNN implementation (steps 3-5 below). 
 Preliminary steps (1 and 2 below) will not be covered in detail here, as they will be unique to individual workflows. Existing documentation for these steps is provided in references. 
 
 ### 1. Obtain ligand-bound structures
