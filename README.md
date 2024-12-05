@@ -1,8 +1,8 @@
-# HOLI-GNN: Heterogeneous OATP-Ligand Interaction Graph Neural Network
-###### The HOLI-GNN model was designed to predict small molecule inhibitors of the organic anion transporting polypeptide (OATP) 1B1, a key hepatic drug uptake protein. For more context, please refer to **preprint, coming soon!**
+# HOLIgraph: Heterogeneous OATP-Ligand Interaction Graph Neural Network
+###### The HOLIgraph model was designed to predict small molecule inhibitors of the organic anion transporting polypeptide (OATP) 1B1, a key hepatic drug uptake protein. For more context, please refer to **preprint, coming soon!**
 
 ## Background
-Example files are provided to complete a tutorial on HOLI-GNN implementation (steps 3-5 below). 
+Example files are provided to complete a tutorial on HOLIgraph implementation (steps 3-5 below). 
 Preliminary steps (1 and 2 below) will not be covered in detail here, as they will be unique to individual workflows. Existing documentation for these steps is provided in references. 
 
 ### 1. Obtain ligand-bound structures
@@ -31,7 +31,7 @@ NOTE: In all provided example scripts, lines that must be updated with user-spec
 - <b>Input:</b>  CSV file containing labeled PLIF data (generated in Step 3).
 - <b>Output:</b> PKL file, for example `1B1in-HOLI-features.pkl`
 
-### 5. Implement HOLI-GNN
+### 5. Implement HOLIgraph
 ###### Use the python script `train-test.py`, dependent on functions from `HOLI_GNN.py`, to construct graphs, train and optimize the model, and evaluate model performance on test sets.
 - <b>Inputs:</b>
     - **Labeled PLIF data** from the CSV file generated in Step 3.
