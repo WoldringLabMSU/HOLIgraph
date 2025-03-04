@@ -204,7 +204,32 @@ def process_molecule(row, interactions, protein_sequence, get_atom_features, get
     data.y = torch.tensor(row['Class'], dtype=torch.float)  # Ensure y is a float
     return data
 
-
+def get_max_feature_dims(graphs, ligand_only=False):
+    ''' Determines the number of dimensions to be defined in the 
+        constructed heterogeneous graph objects. '''
+    if not ligand_only:
+        node_feature_dims = {}
+        edge_feature_dims = {}
+        for data in graphs:
+            for key in data.x_dict.keys():
+                dim = data.x_dict[key].shape[1]
+                node_feature_dims[key] = max(node_feature_dims.get(key, 0), dim)
+            for key in data.edge_attr_dict.keys():
+                dim = data.edge_attr_dict[key].shape[1]
+                edge_feature_dims[key] = max(edge_feature_dims.get(key, 0), dim)
+    else:
+        node_feature_dims_list = []
+        edge_feature_dims_list = []
+        for data in graphs:
+            node_feature_dims_list.append(data.x.shape[1])
+            try:
+                edge_feature_dims_list.append(data.edge_attr.shape[1])
+            except IndexError:
+                continue
+        node_feature_dims = max(node_feature_dims_list)
+        edge_feature_dims = max(edge_feature_dims_list)
+        
+    return node_feature_dims, edge_feature_dims
 
 class HeteroGNN(torch.nn.Module):
     def __init__(self, atom_features_dim, aa_features_dim, edge_feature_dims, dim, common_dim, dropout):
