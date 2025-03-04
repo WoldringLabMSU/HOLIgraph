@@ -4,7 +4,7 @@ import pandas as pd
 import pickle
 from torch.optim.lr_scheduler import OneCycleLR
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, balanced_accuracy_score, roc_auc_score
-from HOLI_GNN import HeteroGNN, create_datasets2, process_molecule, get_atom_features, get_aa_features, get_bond_features, protein_sequence
+from HOLI_GNN import HeteroGNN, get_max_feature_dims, create_datasets2, process_molecule, get_atom_features, get_aa_features, get_bond_features, protein_sequence
 from torch.nn import BCEWithLogitsLoss
 import numpy as np
 import os
@@ -44,14 +44,6 @@ df = merged_df
 df['SMILES'] = df['SMILES'].astype(str)
 df_test_sets = pd.read_csv('test-sets.csv', header=None, index_col=None)
 print(f'Test set df shape: {df_test_sets.shape}')
-
-## CHANGE DIMENSIONS AS NEEDED TO OPTIMIZE FOR USER DATASETS
-node_feature_dims = {'aa': 28, 'atom': 79}
-edge_feature_dims = {
-    ('aa', 'interacts_with', 'atom'): 281,
-    ('atom', 'interacts_with', 'aa'): 281,
-    ('atom', 'bonded_to', 'atom'): 10
-}
 
 def move_data_to_device(data, device):
     for key in data.x_dict.keys():
@@ -118,21 +110,9 @@ def predict_and_evaluate(model, loader, device):
     
     return accuracy, f1, precision, recall, balanced_acc, auc, all_preds, all_labels, all_ligand_names
 
+
 # Initialize model and optimize
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = HeteroGNN(
-    atom_features_dim=node_feature_dims['atom'],
-    aa_features_dim=node_feature_dims['aa'],
-    edge_feature_dims=edge_feature_dims,
-    dim=215,
-    common_dim=79,
-    dropout=0.3
-).to(device)
-
-optimizer = torch.optim.AdamW(model.parameters(), lr=0.001, weight_decay=1e-6)
-scheduler = OneCycleLR(optimizer, max_lr=0.01, total_steps=1000)
-scaler = torch.amp.GradScaler("cuda" if torch.cuda.is_available() else "cpu")
-criterion = BCEWithLogitsLoss()
 
 # Training, validation, and test 
 results_df_list = []
@@ -149,7 +129,24 @@ for test_set in range(df_test_sets.shape[0]):
     train_loader = DataLoader(train_graphs, batch_size=1, shuffle=True)
     val_loader = DataLoader(val_graphs, batch_size=1, shuffle=False)
     test_loader = DataLoader(test_graphs, batch_size=1, shuffle=False)
+
+    # Get max dimensions for train data
+    node_feat_dims, edge_feat_dims = get_max_feature_dims(train_loader)
+
+    model = HeteroGNN(
+        atom_features_dim=node_feat_dims['atom'],
+        aa_features_dim=node_feat_dims['aa'],
+        edge_feature_dims=edge_feat_dims,
+        dim=215,
+        common_dim=79,
+        dropout=0.3
+    ).to(device)
     
+    optimizer = torch.optim.AdamW(model.parameters(), lr=0.001, weight_decay=1e-6)
+    scheduler = OneCycleLR(optimizer, max_lr=0.01, total_steps=1000)
+    scaler = torch.amp.GradScaler("cuda" if torch.cuda.is_available() else "cpu")
+    criterion = BCEWithLogitsLoss()
+
     best_val_loss = float('inf')
     patience = 5
     patience_counter = 0
